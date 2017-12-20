@@ -11,110 +11,77 @@ import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import gtk
+import MySQLdb as mdb
 
-wdata = pd.DataFrame()
+weight_df = pd.DataFrame()
 
-class weightEntry(gtk.Dialog):
+def manualInput(weight_df):
+    entries = ['weight', 'date', 'comments']
+    # calculate last date to show in GUI
+    last_date = weight_df['date'].iloc[-1]
 
-    print 'hello'
+    dlg = gtk.Dialog('Marker Label')
+    dlg.show()
+    # last weight
+    hbox0 = gtk.HBox(True, 0)
+    dlg.vbox.pack_start(hbox0)
+    label = gtk.Label("last Date: ")
+    label.show()
+    hbox0.pack_start(label)
+    label = gtk.Label(last_date)
+    label.show()
+    hbox0.pack_start(label)
+    hbox0.show()
 
-    def __init__(self):
-        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        self.dataframe = pd.DataFrame()
-        self.window.set_title("Weight Entry")
-        self.window.set_default_size(300, 100)
-        self.window.connect("delete_event", self.eventDelete)
-        self.window.connect("destroy", self.destroy)
-        self.set_default_response(gtk.RESPONSE_OK)
-
-        frame = gtk.Frame("Enter weight")
-        self.window.add(frame)
-        # vertikale Box
-        vbox = gtk.VBox(True, 10)
-        frame.add(vbox)
-        # obere hbox
-        hbox1 = gtk.HBox(True, 0)
-        vbox.pack_start(hbox1)
-        label = gtk.Label("weight")
+    entry = {}
+    for data in entries:
+    # weight entry hbox
+        hbox = gtk.HBox(True, 0)
+        dlg.vbox.pack_start(hbox)
+        label = gtk.Label(data)
         label.show()
-        hbox1.pack_start(label)
-        self.weight_entry = gtk.Entry()
-        self.weight_entry.show()
-        self.weight_entry.set_activates_default(gtk.TRUE)
-        hbox1.pack_start(self.weight_entry)
-        hbox1.show()
-        # untere hbox
-        hbox2 = gtk.HBox(True, 0)
-        vbox.pack_start(hbox2)
-        label = gtk.Label("date (optional)")
-        label.show()
-        hbox2.pack_start(label)
-        self.date_entry = gtk.Entry()
-        self.date_entry.show()
-        hbox2.pack_start(self.date_entry)
-        hbox2.show()
-        # buttons
-        button_hbox = gtk.HBox(True, 1)
-        vbox.pack_start(button_hbox)
-        button = gtk.Button("enter")
-        button.connect("clicked", self.enterClicked)
-        button.show()
-        button_hbox.pack_start(button)
-        button = gtk.Button("done")
-        button.connect("clicked", self.exit)
-        button.show()
-        button_hbox.pack_start(button)
-        button_hbox.show()
-        # fertig vertikale Box
-        vbox.show()
-        frame.show()
-        self.window.show()
+        hbox.pack_start(label)
+        entry.update({data: gtk.Entry()})
+        entry[data].show()
+        entry[data].set_activates_default(gtk.TRUE)
+        hbox.pack_start(entry[data])
+        hbox.show()
 
-        if response == gtk.RESPONSE_OK:
-            self.enterClicked
-            self.exit
+    dlg.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
+    dlg.add_button(gtk.STOCK_OK, gtk.RESPONSE_OK)
+    dlg.set_default_response(gtk.RESPONSE_OK)
+    response = dlg.run()
 
-    def enterClicked(self, data=None):
-        inweight = self.weight_entry.get_text()
-        indate = self.date_entry.get_text()
+    if response == gtk.RESPONSE_OK:
+        inweight = entry['weight'].get_text()
+        indate   = entry['date'].get_text()
+        comments = entry['comments'].get_text()
 
-        self.weight_entry.set_text('')
-        self.date_entry.set_text('')
+        for key in entry:
+            entry[key].set_text('')
         if indate != '':
-            try:
-                date = pd.to_datetime(indate, errors='raise')
-            except:
-                error_msg = 'Error: can\'t handle date input {}'.format(indate)
-                dlg = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,
-                                        buttons=gtk.BUTTONS_OK,
-                                        message_format=error_msg)
-                dlg.set_title("Error.")
-                dlg.run()
-                dlg.destroy()
-                return
+          try:
+              date = pd.to_datetime(indate, errors='raise')
+          except:
+              error_msg = 'Error: can\'t handle date input {}'.format(indate)
+              errdlg = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,
+                                      buttons=gtk.BUTTONS_OK,
+                                      message_format=error_msg)
+              errdlg.set_title("Error.")
+              errdlg.run()
+              errdlg.destroy()
+              return
         else:
-            date = dt.datetime.combine(dt.date.today(),
-                   dt.time.min)
+            date = dt.date.today()
 
         weight = float(inweight)
-        new_wdata = pd.DataFrame(data={'weight':[weight]},
-                                index=[date])
-        self.dataframe = self.dataframe.append(new_wdata)
+        new_df = pd.DataFrame(data={'date':    date,
+                                    'weight': weight,
+                                    'comments': comments}, index=[0])
 
-    def getDataFrame(self):
-        return self.dataframe
-
-    def exit(self, widget):
-        gtk.main_quit()
-
-    def eventDelete(self, widget, event, data=None):
-        return False
-
-    def destroy(self, data=None):
-        gtk.main_quit()
-
-    def main(self):
-        gtk.main()
+        return new_df
+    dlg.destroy()
+    return None
 
 def parseAdd(add_string):
     try:
@@ -131,64 +98,95 @@ parser = argparse.ArgumentParser(description='Buxnbombls Personal weight monitor
 parser.add_argument('-a', '--add', action='store_true', dest='add',
                     help='add entry. without date today is used.')
 parser.add_argument('-l', '--log', type=str, dest='file',
-                   default='/home/seppobacho/weight.dat',
+                   default='/home/seppobacho/code/weight/weight.dat',
                    help='logfile to load and store weights.')
 parser.add_argument('-p', '--plot', action='store_true',
                    help='plot weight over time.')
-parser.add_argument('-m', '--mean', action='store_true',
-                   help='mean weight per week.')
+parser.add_argument('-pr', '--plotrange', type=int, default=360, dest='plotrange',
+                   help='plot range backwards in days. -1 for all.')
+parser.add_argument('-avg', '--average', dest='average', default=21,
+                   help='number of days to create running average over.')
 
 args = parser.parse_args()
 
 # load data
 if os.path.isfile(args.file):
-    wdata = pd.DataFrame.from_csv(args.file)
-else:
-    sys.stdout.write('no data found in file {}.'\
-                     ' starting from scratch.\n'.format(args.file))
+    weight_df = pd.read_csv(args.file, index_col = 0)
 
+# connect to mysql database
+con = mdb.connect('localhost', 'seppobacho', 'radlfarn', 'weightdb');
+
+# read data from sql
+#weight_df = pd.read_sql('SELECT * FROM weight_rb;', con)
+
+# append new data from GUI
 if args.add:
-    enter_window = weightEntry()
-    enter_window.main()
-    wdata = wdata.append(enter_window.getDataFrame())
+    print weight_df['date'].iloc[-1]
+    new_weight_entry = manualInput(weight_df)
+    print new_weight_entry
+    weight_df = pd.concat([weight_df, new_weight_entry], axis=0)
+    weight_df.reset_index(inplace=True)
+    weight_df.drop('index', axis=1, inplace=True)
 
-    #date, weight = parseAdd(args.add)
-    #new_wdata = pd.dataFrame(data={'weight':[weight]},
-    #                        index=[date])
-    #wdata = wdata.append(new_wdata)
+    #new_weight_entry.to_sql('weight_rb', con, flavor='mysql', if_exists = 'append')
+    # reload the weight so new data is in there, too
+    #weight_df = pd.read_sql('SELECT * FROM weight_rb;', con)
+    #print weight_df.tail()
 
-#print wdata
+#format data
+weight_df['date'] = pd.to_datetime(weight_df['date'])
 
-# artificial data
-# N = 180
-# weights = np.around(np.random.normal(62,0.5,N), 1)
-#
-# start_date = dt.datetime.combine(dt.datetime.strptime('2015-06-12','%Y-%m-%d'), dt.time.min)
-#
-# datelist = pd.date_range(start_date, periods=N, freq='D').tolist()
+# save data to csv just in case
+if os.path.isfile(args.file):
+    shutil.copy(args.file, '{}.bak'.format(args.file))
+weight_df.to_csv(args.file, cols=['Index', 'Date', 'weight', 'comments'])
+print ('weight saved to {}'.format(args.file))
+con.close()
 
-#wdata = pd.DataFrame(data={'weight':weights},
-#                    index=datelist)
-#wdata.to_csv(args.file)
+# save to Dropbox (again, just in case)
+weight_df.to_csv('/home/seppobacho/Dropbox/documents/weight.dat', cols=['Index', 'Date', 'weight', 'comments'])
 
-weekly = wdata.resample("w", how=np.mean)
-weekly = weekly.rename(columns={'weight': 'weekly'})
-print weekly
-#weekly = weekly.rename('weight','weekly')
 
-fig = plt.figure()
-ax = fig.add_subplot(111)
-
-wdata.plot(ax=ax)
-weekly.plot(ax=ax)
-#all = pd.DataFrame({'wdata': wdata, 'weekly':weekly})
-#all = pd.concat({'wdata':wdata, 'weekly':weekly}, axis=1)
-#print all
-#all.plot()
+# plot this shit
 if args.plot:
-    plt.show()
+    # rolling mean
+    plot_df = weight_df.copy()
+    all_date_idx = pd.date_range(plot_df['date'].min(), plot_df['date'].max())
+    # print pd.merge(plot_df.set_index('date'),
+    #                plot_df.reindex(all_date_idx), how='outer')
+    plot_df['date'] = pd.to_datetime(plot_df['date'])
+    plot_df = plot_df.drop_duplicates('date')
+    plot_df = plot_df.set_index('date').reindex(all_date_idx)
+    plot_df['date'] = plot_df.index
+    plot_df['rolling_small'] = pd.rolling_mean(plot_df['weight'], 7, min_periods=1)
+    plot_df['rolling_large'] = pd.rolling_mean(plot_df['weight'], 21, min_periods=1)
 
-# save data
-#if os.path.isfile(args.file):
-#    shutil.copy(args.file, '{}.bak'.format(args.file))
-#wdata.to_csv(args.file)
+    if args.plotrange != -1:
+        plot_df = plot_df[len(plot_df)-args.plotrange:]
+
+    fig = plt.figure()
+    ax = plt.subplot2grid((3,1),(0,0), rowspan=2)
+
+    # have to convert date cause scatter refuses to work with the date
+    dates = [dt.date() for dt in plot_df['date']]
+    ax.scatter(dates,
+               plot_df['weight'],
+               color = 'gray')
+    ax.plot(dates, plot_df['rolling_small'], linewidth=3, color='#aa3333')
+    # ax.plot(plot_df['date'], plot_df['rolling30'], linewidth=3, color='#33aa33')
+    ax.grid()
+
+    # experimental mean part
+
+    mean_ax = plt.subplot2grid((3,1),(2,0), sharex=ax)
+    #
+    y1 = np.array(plot_df['rolling_small'])
+    y2 = np.array(plot_df['rolling_large'])
+    mean_ax.fill_between(dates, y1, y2, where=y2 >= y1, facecolor='green', interpolate=True)
+    mean_ax.fill_between(dates, y1, y2, where=y2 <= y1, facecolor='red', interpolate=True)
+    mean_ax.grid()
+
+    ax.xaxis.set_label('time')
+    # plt.xticks(rotation=90)
+    fig.autofmt_xdate()
+    plt.show()
