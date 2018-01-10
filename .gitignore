@@ -1,3 +1,4 @@
+*.pyc
 app.db
 db_repository
 venv

@@ -1,0 +1,12 @@
+<!-- extend from base layout -->
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Weight Logging</h1>
+  <form action="" method="get" name="show_data">
+    Stored data:
+      <p>
+          {{ df_html }}
+      </p>
+  </form>
+{% endblock %}

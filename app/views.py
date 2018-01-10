@@ -4,7 +4,7 @@ Created on Tue Oct 17 08:49:58 2017
 
 @author: rbomblies
 """
-from flask import render_template, redirect, url_for, request, g, session
+from flask import render_template, redirect, url_for, request, g, session, Markup
 from flask_login import login_user, logout_user, current_user, login_required
 from datetime import datetime
 
@@ -70,6 +70,8 @@ def logout():
 def add_data():
     user = g.user
     form = AddForm()
+    if request.method == 'GET':
+        form.date.data = datetime.today()
     if form.validate_on_submit():
         if request.method == 'POST':
             if request.form['submit'] == "today":
@@ -78,12 +80,12 @@ def add_data():
                               comment = request.form['comment'],
                               user_id = user.id)
             elif request.form['submit'] == "yesterday":
-                we = WeightEntry(date = datetime.yesterday().date(),
+                we = WeightEntry(date = date.today() - timedelta(1).date(),
                               weight = request.form['weight'],
                               comment = request.form['comment'],
                               user_id = user.id)
             else:
-                we = WeightEntry(date = request.form['date'],
+                we = WeightEntry(date = datetime.strptime('', request.form['date']),
                               weight = request.form['weight'],
                               comment = request.form['comment'],
                               user_id = user.id)
@@ -95,8 +97,14 @@ def add_data():
                            title='add data',
                            form=form)
 
-@app.route('/plot')
-def build_plot():
-    plot_url = ''
-
-    return '<img src="data:image/png;base64,{}">'.format(plot_url)
+@app.route('/show', methods=['GET', 'POST'])
+@login_required
+def show_data():
+    user = g.user
+    weight_list = [[w.date, w.weight, w.comment] for w in user.weights.all()]
+    weights = DataFrame(weight_list, columns=['date', 'weight', 'comment'])
+    df_html = weights.set_index('date').iloc[::-1].to_html(justify='center')
+    markup_df_html = Markup(df_html)
+    return render_template('show_data.html',
+                           title='show data',
+                           df_html=markup_df_html)
