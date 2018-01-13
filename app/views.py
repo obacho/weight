@@ -6,7 +6,7 @@ Created on Tue Oct 17 08:49:58 2017
 """
 from flask import render_template, redirect, url_for, request, g, session, Markup
 from flask_login import login_user, logout_user, current_user, login_required
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from app import app, db, lm
 from pandas import DataFrame
@@ -80,12 +80,12 @@ def add_data():
                               comment = request.form['comment'],
                               user_id = user.id)
             elif request.form['submit'] == "yesterday":
-                we = WeightEntry(date = date.today() - timedelta(1).date(),
+                we = WeightEntry(date = datetime.now().date() - timedelta(1),
                               weight = request.form['weight'],
                               comment = request.form['comment'],
                               user_id = user.id)
             else:
-                we = WeightEntry(date = datetime.strptime('', request.form['date']),
+                we = WeightEntry(date = datetime.strptime(request.form['date'], '%Y-%m-%d'),
                               weight = request.form['weight'],
                               comment = request.form['comment'],
                               user_id = user.id)
