@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 
 from app import app, db, lm
 from pandas import DataFrame
-from .forms import AddForm, LoginForm
+from .forms import AddForm, LoginForm, EditForm
 from .models import User, WeightEntry
 from .plotting import plot_weights
 from .iplotting import iplot_worksessions
@@ -91,13 +91,12 @@ def add_data():
                               user_id = user.id)
             db.session.add(we)
             db.session.commit()
-            print (we)
             return redirect(url_for('index'))
     return render_template('add_data.html',
                            title='add data',
                            form=form)
 
-@app.route('/show', methods=['GET', 'POST'])
+@app.route('/show', methods=['GET'])
 @login_required
 def show_data():
     user = g.user
@@ -108,3 +107,23 @@ def show_data():
     return render_template('show_data.html',
                            title='show data',
                            df_html=markup_df_html)
+
+@app.route('/edit', methods=['GET', 'POST'])
+@login_required
+def edit_data():
+    user = g.user
+    form = EditForm()
+    print (form.validate_on_submit())
+    print (form.weight)
+    if form.validate_on_submit():
+        if request.method == 'POST':
+            we = user.weights.order_by('-id').first()
+            we.weight = request.form['weight']
+            print (we)
+            db.session.commit()
+            return redirect(url_for('show_data'))
+
+    return render_template('edit_data.html',
+                           title='edit data',
+                           form=form
+                           )

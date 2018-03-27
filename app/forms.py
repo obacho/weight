@@ -17,3 +17,6 @@ class AddForm(FlaskForm):
 class LoginForm(FlaskForm):
     username = StringField('username', validators=[DataRequired()])
     remember_me = BooleanField('remember_me', default=True)
+
+class EditForm(FlaskForm):
+    weight = FloatField('weight', validators=[DataRequired()])
