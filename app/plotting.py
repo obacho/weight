@@ -30,6 +30,8 @@ def plot_weights(weights):
     plots weights
     '''
     plot_df = DataFrame(weights)
+    first_date = (datetime.now() - timedelta(days=265)).date()
+    plot_df = plot_df[plot_df['date']>first_date]
     # fill with missing dates
     all_date_idx = date_range(plot_df['date'].min(), plot_df['date'].max())
     plot_df['date'] = to_datetime(plot_df['date'])
