@@ -83,4 +83,4 @@ def iplot_worksessions(worksessions):
                         bottom='check_out',
                         hover_tool=hover)
     script, div = components(plot)
-    return script, div
+    return div, script, plot

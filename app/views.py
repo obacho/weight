@@ -23,7 +23,7 @@ def index():
     weight_list = [[w.date, w.weight, w.comment] for w in user.weights.all()]
     weights = DataFrame(weight_list, columns=['date', 'weight', 'comment'])
     plot = plot_weights(weights)
-    #div, script = iplot_weights(weights)
+    #div, script, plot = iplot_weights(weights)
     return render_template('index.html',
                            title='Home',
                            plot = plot,

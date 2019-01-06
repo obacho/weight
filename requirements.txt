@@ -1,6 +1,6 @@
 backports-abc==0.5
 backports.functools-lru-cache==1.4
-bokeh==0.12.13
+#bokeh==0.12.13
 certifi==2017.11.5
 click==6.7
 cycler==0.10.0
@@ -19,7 +19,7 @@ pkg-resources==0.0.0
 pyparsing==2.2.0
 python-dateutil==2.6.1
 pytz==2017.3
-PyYAML==3.12
+PyYAML==4.2b1
 singledispatch==3.4.0.3
 six==1.11.0
 SQLAlchemy==1.1.15
