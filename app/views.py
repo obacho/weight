@@ -13,7 +13,7 @@ from pandas import DataFrame
 from .forms import AddForm, LoginForm, EditForm
 from .models import User, WeightEntry
 from .plotting import plot_weights
-from .iplotting import iplot_worksessions
+#from .iplotting import iplot_worksessions
 
 @app.route('/')
 @app.route('/index')
