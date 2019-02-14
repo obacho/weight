@@ -22,15 +22,13 @@ def index():
     user = g.user
     weight_list = [[w.date, w.weight, w.comment] for w in user.weights.all()]
     weights = DataFrame(weight_list, columns=['date', 'weight', 'comment'])
-    plot = plot_weights(weights)
-    #div, script, plot = iplot_weights(weights)
+    month_mean = weights[weights['date'] > (datetime.now() - timedelta(days=30)).date()]['weight'].mean().round(1)
+    week_mean = weights[weights['date'] > (datetime.now() - timedelta(days=70)).date()]['weight'].mean().round(1)
     return render_template('index.html',
                            title='Home',
-                           plot = plot,
-                           #div = div,
-                           #script=script,
                            user=user,
-                           weights=weights)
+                           month_mean=month_mean,
+                           week_mean=week_mean)
 
 
 @lm.user_loader
@@ -67,7 +65,7 @@ def logout():
 
 @app.route('/add', methods=['GET', 'POST'])
 @login_required
-def add_data():
+def add():
     user = g.user
     form = AddForm()
     if request.method == 'GET':
@@ -96,9 +94,22 @@ def add_data():
                            title='add data',
                            form=form)
 
+@app.route('/plot')
+@login_required
+def plot():
+    user = g.user
+    weight_list = [[w.date, w.weight, w.comment] for w in user.weights.all()]
+    weights = DataFrame(weight_list, columns=['date', 'weight', 'comment'])
+    plot = plot_weights(weights)
+    #div, script, plot = iplot_weights(weights)
+    return render_template('plot.html',
+                           title='Home',
+                           user=user,
+                           plot = plot)
+
 @app.route('/show', methods=['GET'])
 @login_required
-def show_data():
+def show():
     user = g.user
     weight_list = [[w.date, w.weight, w.comment] for w in user.weights.all()]
     weights = DataFrame(weight_list, columns=['date', 'weight', 'comment'])
@@ -110,7 +121,7 @@ def show_data():
 
 @app.route('/edit', methods=['GET', 'POST'])
 @login_required
-def edit_data():
+def edit():
     user = g.user
     form = EditForm()
     print (form.validate_on_submit())

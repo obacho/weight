@@ -10,9 +10,10 @@
     <div>weightlog:
         <a href="/index">Home</a>
         {% if g.user.is_authenticated %}
-        | <a href="{{ url_for('add_data') }}">add data</a>
-        | <a href="{{ url_for('show_data') }}">show data</a>
-        | <a href="{{ url_for('edit_data') }}">edit data</a>
+        | <a href="{{ url_for('add') }}">add</a>
+        | <a href="{{ url_for('plot') }}">plot</a>
+        | <a href="{{ url_for('show') }}">show</a>
+        | <a href="{{ url_for('edit') }}">edit</a>
         | <a href="{{ url_for('logout') }}">Logout</a>
         {% endif %}
     </div>

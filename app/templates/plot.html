@@ -1,13 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-      <h1>Hello, {{ user.username }}!</h1>
+      <h1>weight plotting</h1>
       <div class="row">
        <div class="column">
          <p>
-             monthly mean: {{ month_mean }} kg
-         </p>
-         <p>
-             weekly mean: {{ week_mean }} kg
+           <img src="data:image/png;base64, {{ plot }}">
          </p>
        </div>
      </div>
