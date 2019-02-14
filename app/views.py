@@ -9,21 +9,29 @@ from flask_login import login_user, logout_user, current_user, login_required
 from datetime import datetime, timedelta
 
 from app import app, db, lm
+from numpy import mean
 from pandas import DataFrame
 from .forms import AddForm, LoginForm, EditForm
 from .models import User, WeightEntry
 from .plotting import plot_weights
-#from .iplotting import iplot_worksessions
 
 @app.route('/')
 @app.route('/index')
 @login_required
 def index():
     user = g.user
-    weight_list = [[w.date, w.weight, w.comment] for w in user.weights.all()]
-    weights = DataFrame(weight_list, columns=['date', 'weight', 'comment'])
-    month_mean = weights[weights['date'] > (datetime.now() - timedelta(days=30)).date()]['weight'].mean().round(1)
-    week_mean = weights[weights['date'] > (datetime.now() - timedelta(days=70)).date()]['weight'].mean().round(1)
+
+    def get_mean_weight(days=7):
+        data = WeightEntry.query\
+                      .filter_by(user_id=user.id)\
+                      .filter(WeightEntry.date > (datetime.now() - timedelta(days=days)).date())\
+                      .with_entities(WeightEntry.weight)\
+                      .all()
+        weights = [w.weight for w in data]
+        return mean(weights).round(1)
+
+    month_mean = get_mean_weight(days=30)
+    week_mean = get_mean_weight(days=7)
     return render_template('index.html',
                            title='Home',
                            user=user,

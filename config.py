@@ -8,6 +8,9 @@ Created on Tue Oct 17 09:17:53 2017
 import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+APP_LOGGING_LEVEL = os.getenv('APP_LOGGING_LEVEL', default="ERROR")
+DEBUG = APP_LOGGING_LEVEL == 'DEBUG'
+
 WTF_CSRF_ENABLED = True
 SECRET_KEY = 'adsfhafdfq74$ajdsfFFJFFi37!/$'
 
