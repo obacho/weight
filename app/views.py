@@ -119,7 +119,7 @@ def plot():
         end_date = datetime.strptime(request.args.get('end_date'), '%Y-%m-%d').date()
     else:
         end_date = datetime.today().date()
-    form.end_date.data = datetime.today().date()
+    form.end_date.data = end_date
 
 
     if request.method == 'POST':
