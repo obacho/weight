@@ -20,3 +20,7 @@ class LoginForm(FlaskForm):
 
 class EditForm(FlaskForm):
     weight = FloatField('weight', validators=[DataRequired()])
+
+class PlotForm(FlaskForm):
+    start_date = DateField('start_date', format='%Y-%m-%d', validators=[Optional()])
+    end_date = DateField('end_date', format='%Y-%m-%d', validators=[Optional()])

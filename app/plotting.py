@@ -25,41 +25,38 @@ def strfdelta(tdelta, fmt):
     t = DeltaTemplate(fmt)
     return t.substitute(**d)
 
-def plot_weights(weights):
+def plot_weights(df):
     '''
     plots weights
     '''
-    plot_df = DataFrame(weights)
-    first_date = (datetime.now() - timedelta(days=365)).date()
-    plot_df = plot_df[plot_df['date']>first_date]
     # fill with missing dates
-    all_date_idx = date_range(plot_df['date'].min(), plot_df['date'].max())
-    plot_df['date'] = to_datetime(plot_df['date'])
-    plot_df = plot_df.drop_duplicates('date')
-    plot_df = plot_df.set_index('date').reindex(all_date_idx)
-    plot_df['date'] = plot_df.index
-    plot_df['rolling_small'] = plot_df['weight'].rolling(7, min_periods=1).mean()
-    plot_df['rolling_large'] = plot_df['weight'].rolling(21, min_periods=1).mean()
+    all_date_idx = date_range(df['date'].min(), df['date'].max())
+    df['date'] = to_datetime(df['date'])
+    df = df.drop_duplicates('date')
+    df = df.set_index('date').reindex(all_date_idx)
+    df['date'] = df.index
+    df['rolling_small'] = df['weight'].rolling(7, min_periods=1).mean()
+    df['rolling_large'] = df['weight'].rolling(21, min_periods=1).mean()
 
     img = io.BytesIO()
     fig = plt.figure()
     ax = plt.subplot2grid((3,1),(0,0), rowspan=2)
 
     # have to convert date cause scatter refuses to work with the date
-    dates = [dt.date() for dt in plot_df['date']]
+    dates = [dt.date() for dt in df['date']]
     ax.scatter(dates,
-               plot_df['weight'],
+               df['weight'],
                color = 'gray')
-    ax.plot(dates, plot_df['rolling_small'], linewidth=3, color='#aa3333')
-    # ax.plot(plot_df['date'], plot_df['rolling30'], linewidth=3, color='#33aa33')
+    ax.plot(dates, df['rolling_small'], linewidth=3, color='#aa3333')
+    # ax.plot(df['date'], df['rolling30'], linewidth=3, color='#33aa33')
     ax.grid()
 
     # mean part
 
     mean_ax = plt.subplot2grid((3,1),(2,0), sharex=ax)
     #
-    y1 = array(plot_df['rolling_small'])
-    y2 = array(plot_df['rolling_large'])
+    y1 = array(df['rolling_small'])
+    y2 = array(df['rolling_large'])
     mean_ax.fill_between(dates, y1, y2, where=y2 >= y1, facecolor='green', interpolate=True)
     mean_ax.fill_between(dates, y1, y2, where=y2 <= y1, facecolor='red', interpolate=True)
     mean_ax.grid()

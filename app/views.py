@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from app import app, db, lm
 from numpy import mean
 from pandas import DataFrame
-from .forms import AddForm, LoginForm, EditForm
+from .forms import AddForm, LoginForm, EditForm, PlotForm
 from .models import User, WeightEntry
 from .plotting import plot_weights
 
@@ -98,21 +98,49 @@ def add():
             db.session.add(we)
             db.session.commit()
             return redirect(url_for('index'))
-    return render_template('add_data.html',
+    return render_template('add.html',
                            title='add data',
                            form=form)
 
-@app.route('/plot')
+@app.route('/plot', methods=['GET', 'POST'])
 @login_required
 def plot():
     user = g.user
+    form = PlotForm()
+
+    # set default start and end dates
+    if request.args.get('start_date'):
+        start_date = datetime.strptime(request.args.get('start_date'), '%Y-%m-%d').date()
+    else:
+        start_date = (datetime.today() - timedelta(365)).date()
+    form.start_date.data = start_date
+
+    if request.args.get('end_date'):
+        end_date = datetime.strptime(request.args.get('end_date'), '%Y-%m-%d').date()
+    else:
+        end_date = datetime.today().date()
+    form.end_date.data = datetime.today().date()
+
+
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%d').date()
+            end_date = datetime.strptime(request.form['end_date'], '%Y-%m-%d').date()
+            print (start_date)
+            return redirect(url_for('plot',
+                                    start_date=start_date,
+                                    end_date=end_date))
+
     weight_list = [[w.date, w.weight, w.comment] for w in user.weights.all()]
-    weights = DataFrame(weight_list, columns=['date', 'weight', 'comment'])
-    plot = plot_weights(weights)
-    #div, script, plot = iplot_weights(weights)
+    df = DataFrame(weight_list, columns=['date', 'weight', 'comment'])
+
+    df = df[df['date']>start_date]
+    df = df[df['date']<end_date]
+    plot = plot_weights(df)
     return render_template('plot.html',
                            title='Home',
                            user=user,
+                           form=form,
                            plot = plot)
 
 @app.route('/show', methods=['GET'])
@@ -123,7 +151,7 @@ def show():
     weights = DataFrame(weight_list, columns=['date', 'weight', 'comment'])
     df_html = weights.set_index('date').iloc[::-1].to_html(justify='center')
     markup_df_html = Markup(df_html)
-    return render_template('show_data.html',
+    return render_template('show.html',
                            title='show data',
                            df_html=markup_df_html)
 
@@ -142,7 +170,7 @@ def edit():
             db.session.commit()
             return redirect(url_for('show_data'))
 
-    return render_template('edit_data.html',
+    return render_template('edit.html',
                            title='edit data',
                            form=form
                            )
