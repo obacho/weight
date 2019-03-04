@@ -126,7 +126,6 @@ def plot():
         if form.validate_on_submit():
             start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%d').date()
             end_date = datetime.strptime(request.form['end_date'], '%Y-%m-%d').date()
-            print (start_date)
             return redirect(url_for('plot',
                                     start_date=start_date,
                                     end_date=end_date))
@@ -168,7 +167,7 @@ def edit():
             we.weight = request.form['weight']
             print (we)
             db.session.commit()
-            return redirect(url_for('show_data'))
+            return redirect(url_for('show'))
 
     return render_template('edit.html',
                            title='edit data',
