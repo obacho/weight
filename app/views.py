@@ -133,14 +133,14 @@ def plot():
     weight_list = [[w.date, w.weight, w.comment] for w in user.weights.all()]
     df = DataFrame(weight_list, columns=['date', 'weight', 'comment'])
 
-    df = df[df['date']>=start_date]
-    df = df[df['date']<=end_date]
+    df = df[df['date'] >= start_date]
+    df = df[df['date'] <= end_date]
     plot = plot_weights(df)
     return render_template('plot.html',
                            title='Home',
                            user=user,
                            form=form,
-                           plot = plot)
+                           plot=plot)
 
 @app.route('/show', methods=['GET'])
 @login_required
@@ -159,13 +159,10 @@ def show():
 def edit():
     user = g.user
     form = EditForm()
-    print (form.validate_on_submit())
-    print (form.weight)
     if form.validate_on_submit():
         if request.method == 'POST':
             we = user.weights.order_by('-id').first()
             we.weight = request.form['weight']
-            print (we)
             db.session.commit()
             return redirect(url_for('show'))
 

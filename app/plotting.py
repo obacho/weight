@@ -30,21 +30,19 @@ def plot_weights(df):
     plots weights
     '''
     # fill with missing dates
-    all_date_idx = date_range(df['date'].min(), df['date'].max())
     df['date'] = to_datetime(df['date'])
-    df = df.drop_duplicates('date')
-    df = df.set_index('date').reindex(all_date_idx)
-    df['date'] = df.index
-    df['rolling_small'] = df['weight'].rolling(7, min_periods=1).mean()
-    df['rolling_large'] = df['weight'].rolling(21, min_periods=1).mean()
+    df = df.set_index('date').sort_index()
+
+    df['rolling_small'] = df['weight'].rolling('7d', min_periods=1).mean()
+    df['rolling_large'] = df['weight'].rolling('21d', min_periods=1).mean()
 
     img = io.BytesIO()
     fig = plt.figure()
     ax = plt.subplot2grid((3,1),(0,0), rowspan=2)
 
     # have to convert date cause scatter refuses to work with the date
-    dates = [dt.date() for dt in df['date']]
-    ax.scatter(dates,
+    dates = [dt.date() for dt in df.index]
+    ax.scatter(df.index,
                df['weight'],
                color = 'gray')
     ax.plot(dates, df['rolling_small'], linewidth=3, color='#aa3333')
