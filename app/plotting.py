@@ -33,8 +33,8 @@ def plot_weights(df):
     df['date'] = to_datetime(df['date'])
     df = df.set_index('date').sort_index()
 
-    df['rolling_small'] = df['weight'].rolling('7d', min_periods=1).mean()
-    df['rolling_large'] = df['weight'].rolling('21d', min_periods=1).mean()
+    df['rolling_small'] = df['weight'].rolling('14d', min_periods=1).mean()
+    df['rolling_large'] = df['weight'].rolling('60d', min_periods=1).mean()
 
     img = io.BytesIO()
     fig = plt.figure()
