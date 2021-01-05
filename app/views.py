@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from app import app, db, lm
 from numpy import mean
 from pandas import DataFrame
+from sqlalchemy.sql import text
 from .forms import AddForm, LoginForm, EditForm, PlotForm
 from .models import User, WeightEntry
 from .plotting import plot_weights
@@ -161,7 +162,7 @@ def edit():
     form = EditForm()
     if form.validate_on_submit():
         if request.method == 'POST':
-            we = user.weights.order_by('-id').first()
+            we = user.weights.order_by(text('id desc')).first()
             we.weight = request.form['weight']
             db.session.commit()
             return redirect(url_for('show'))
